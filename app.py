@@ -111,17 +111,17 @@ def setup_environment():
 # 4. Web 介面佈局 (UI Layout)
 # =================================================================
 
-st.set_page_config(page_title="白馬村滑雪 AI 助理", layout="centered")
-st.title("❄️ 白馬村滑雪 AI 預測系統")
+st.set_page_config(page_title="白馬村滑雪天氣AI助理", layout="centered")
+st.title("❄️ 白馬村滑雪天氣AI助理")
 
 model, scaler, df = setup_environment()
 
 if model is not None:
     # 側邊欄：功能選單
-    st.sidebar.header("🕹️ 控制面板")
-    app_mode = st.sidebar.radio("選擇功能模式", ["未來行程規劃", "歷史模型驗證"])
+    st.sidebar.header("🕹️ 功能選單")
+    app_mode = st.sidebar.radio("選擇功能模式", ["未來行程預測", "歷史模型驗證"])
 
-    if app_mode == "未來行程規劃":
+    if app_mode == "未來行程預測":
         st.sidebar.subheader("📅 旅遊日期設定")
         d_start = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
         d_end = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
@@ -143,34 +143,46 @@ if model is not None:
                     '日期': r['info']['date'].date(),
                     '最高溫': f"{r['info']['tmax']:.1f}°C",
                     '最低溫': f"{r['info']['tmin']:.1f}°C",
-                    '積雪(cm)': round(r['info']['snowdmax'], 1),
+                    '積雪(cm)': round(r['info']['snowdmax']:.1f, 1),
                     '指數': r['stars']
                 } for r in results]))
             else:
                 st.warning("請選擇未來日期。")
 
-    else:
-        # 歷史模型驗證模式 (已移除隨機按鈕)
+else:
+        # --- 歷史模型驗證模式 ---
         st.sidebar.subheader("🔍 歷史資料核對")
-        target_v = st.sidebar.date_input("選擇驗證日期", df['Date'].max().date())
         
-        if st.button("啟動 AI 驗證", type="primary"):
+        # 1. 在側邊欄放置日期選擇器
+        target_v = st.sidebar.date_input(
+            "選擇驗證日期", 
+            df['Date'].max().date(),
+            help="請選擇 CSV 資料庫中已存在的日期進行核對"
+        )
+        
+        # 2. 將執行按鈕移入側邊欄 (並改為 Primary 顏色強調)
+        btn_verify = st.sidebar.button("啟動 AI 驗證", type="primary")
+
+        # 3. 主畫面邏輯：只有在按下按鈕後才執行與顯示
+        if btn_verify:
             results = run_ai_prediction(pd.to_datetime(target_v), pd.to_datetime(target_v), model, scaler, df)
             actual = df[df['Date'] == pd.to_datetime(target_v)]
             
             if results and not actual.empty:
                 p, a = results[0]['info'], actual.iloc[0]
-                st.subheader(f"📊 預測 vs 觀測對比 ({target_v})")
-                col1, col2, col3 = st.columns(3)
-                col1.metric("項目", "平均氣溫", "積雪深度")
-                col2.metric("真實數據", f"{a['tavg']:.1f}°C", f"{a['snowdmax']:.1f}cm")
-                col3.metric("AI 預測", f"{p['tavg']:.1f}°C", f"{p['snowdmax']:.1f}cm")
+                st.subheader(f"📊 預測與觀測對比 ({target_v})")
                 
+                # 使用大字體顯示核心指標對照
+                col1, col2, col3 = st.columns(3)
+                col1.metric("觀測項目", "平均氣溫", "積雪深度")
+                col2.metric("真實觀測", f"{a['tavg']:.1f}°C", f"{a['snowdmax']:.1f}cm")
+                col3.metric("AI預測值", f"{p['tavg']:.1f}°C", f"{p['snowdmax']:.1f}cm")
+                
+                # 誤差分析
                 error = abs(a['tavg'] - p['tavg'])
                 if error < 2.0:
-                    st.success(f"✅ 模型表現優異 (溫度誤差僅 {error:.2f}°C)")
+                    st.success(f"✅ 模型表現不差：溫度誤差僅 {error:.2f}°C")
                 else:
-                    st.warning(f"🧐 誤差較大 ({error:.2f}°C)，通常發生在極端氣象變化的日子。")
+                    st.warning(f"🧐 誤差較大 ({error:.2f}°C)，建議檢查當天是否有極端天氣紀錄。")
             else:
-                st.error("找不到該日期的完整資料，請重新選擇。")
-
+                st.error("此日期不在資料庫中，或前置資料不足 (需至少有 7 天歷史紀錄)。")
