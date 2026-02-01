@@ -134,33 +134,49 @@ try:
                 st.warning("請選擇資料集日期之後的未來區間（例如 2026 年之後）。")
 
     else:
-        st.sidebar.subheader("🔍 準確度驗證")
-        # 驗證模式的日期選擇
-        verify_date = st.sidebar.date_input("選擇歷史日期", df['Date'].max())
+    # --- 歷史預測驗證模式 ---
+        st.subheader(f"🔍 歷史資料驗證：{verify_date}")
         
-        if st.sidebar.button("開始核對"):
-            # 呼叫同一套邏輯進行單日預測
+        # 抓取該日期的真實資料
+        real_data = df[df['Date'] == pd.to_datetime(verify_date)]
+        
+        if not real_data.empty:
+            # 執行單日預測 (這裡我們需要一個單日預測的邏輯)
+            # 為了簡便，我們直接呼叫 get_ski_recommendation 但區間設為同一天
             _, result = get_ski_recommendation(str(verify_date), str(verify_date), model, scaler, df)
             
             if result:
                 pred = result[0]['info']
-                real_data = df[df['Date'] == pd.to_datetime(verify_date)]
+                actual = real_data.iloc[0]
                 
-                if not real_data.empty:
-                    actual = real_data.iloc[0]
-                    st.subheader(f"📊 預測 vs 真實 ({verify_date})")
-                    
-                    # 用 columns 顯示美觀的對照表
-                    c1, c2, c3 = st.columns(3)
-                    c1.metric("項目", "平均溫", "降雪量")
-                    c2.metric("真實觀測", f"{actual['tavg']:.1f}°C", f"{actual['snowf']:.1f}cm")
-                    c3.metric("AI 預測", f"{pred['tavg']:.1f}°C", f"{pred['snowf']:.1f}cm")
-                    
-                    # 顯示誤差分析
-                    diff = abs(actual['tavg'] - pred['tavg'])
-                    st.info(f"💡 溫度誤差：{diff:.2f}°C")
+                # 用欄位展示對比
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.write("**項目**")
+                    st.write("平均氣溫")
+                    st.write("當日降雪")
+                    st.write("積雪深度")
+                with col2:
+                    st.write("**真實觀測**")
+                    st.write(f"{actual['tavg']:.1f}°C")
+                    st.write(f"{actual['snowf']:.1f} cm")
+                    st.write(f"{actual['snowdmax']:.1f} cm")
+                with col3:
+                    st.write("**AI 預測**")
+                    st.write(f"{pred['tavg']:.1f}°C")
+                    st.write(f"{pred['snowf']:.1f} cm")
+                    st.write(f"{pred['snowdmax']:.1f} cm")
+                
+                # 計算誤差
+                error = abs(actual['tavg'] - pred['tavg'])
+                st.write(f"💡 **模型溫度誤差：{error:.2f}°C**")
+                
+                if error < 2.0:
+                    st.success("✅ 模型表現優異！誤差在 2 度以內。")
                 else:
-                    st.error("找不到該日期的真實資料。")
+                    st.warning("🧐 誤差較大，通常發生在極端氣候突變的日子。")
+        else:
+            st.error("此日期不在 CSV 資料庫中，無法進行驗證。")
 
 # --- 這裡就是關鍵：必須要有 except 來結尾 ---
 except Exception as e:
@@ -168,3 +184,4 @@ except Exception as e:
 
 
     st.write(f"錯誤細節: {e}")
+
