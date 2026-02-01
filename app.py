@@ -171,6 +171,3 @@ if model is not None:
                     st.warning(f"🧐 誤差較大 ({error:.2f}°C)，通常發生在極端氣象變化的日子。")
             else:
                 st.error("找不到該日期的完整資料，請重新選擇。")
-
-except Exception as e:
-    st.write(f"錯誤細節: {e}")
