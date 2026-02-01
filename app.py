@@ -79,9 +79,12 @@ st.title("❄️ 白馬村滑雪 AI 特助")
 
 @st.cache_resource
 def load_assets():
-    model = load_model('my_lstm_model.h5')
+    # 加上 compile=False 可以避開版本不相容的解碼錯誤
+    model = load_model('my_lstm_model.h5', compile=False) 
+    
     with open('scaler.pkl', 'rb') as f:
         scaler = pickle.load(f)
+    
     df = pd.read_csv('weather_exam.csv')
     df['Date'] = pd.to_datetime(df['Date'])
     return model, scaler, df
