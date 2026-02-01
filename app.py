@@ -74,16 +74,27 @@ def get_ski_recommendation(start_date_str, end_date_str, model, scaler, df, wind
 
 # --- 2. Streamlit 介面 ---
 
-st.set_page_config(page_title="白馬村滑雪天氣預測AI", page_icon="❄️")
-st.title("❄️ 白馬村滑雪天氣預測AI")
+st.set_page_config(page_title="白馬村滑雪預測", page_icon="❄️")
+st.title("❄️ 白馬村滑雪 AI 特助")
 
 @st.cache_resource
 def load_assets():
-    model = load_model('my_lstm_model.h5')
+    # 載入模型 (保持之前的 compile=False)
+    model = load_model('my_lstm_model.h5', compile=False) 
+    
     with open('scaler.pkl', 'rb') as f:
         scaler = pickle.load(f)
+    
+    # 讀取資料
     df = pd.read_csv('weather_exam.csv')
     df['Date'] = pd.to_datetime(df['Date'])
+    
+    # --- 關鍵修正：補上缺失的 Sin/Cos 欄位 ---
+    # 根據 Date 欄位即時計算 month_sin 和 month_cos
+    df['month_sin'] = np.sin(2 * np.pi * df['Date'].dt.month / 12)
+    df['month_cos'] = np.cos(2 * np.pi * df['Date'].dt.month / 12)
+    # ---------------------------------------
+    
     return model, scaler, df
 
 try:
@@ -93,7 +104,7 @@ try:
     start_input = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
     end_input = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
 
-    if st.sidebar.button("執行預測及建議"):
+    if st.sidebar.button("執行 AI 分析"):
         best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
         
         if best:
@@ -118,4 +129,5 @@ try:
 
 except Exception as e:
     st.error(f"載入失敗：請確保 GitHub 中有 model.h5, scaler.pkl 和 weather_exam.csv 三個檔案。")
+
     st.write(f"錯誤細節: {e}")
