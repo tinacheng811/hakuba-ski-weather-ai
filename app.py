@@ -10,7 +10,8 @@ import streamlit.components.v1 as components # 新增這個 import
 # =================================================================
 # 1. 系統常數定義 (Constants)
 # =================================================================
-MODEL_FILE  = 'my_lstm_model.h5'
+#MODEL_FILE  = 'my_lstm_model.h5'
+MODEL_FILE  = 'my_lstm_model.keras'
 SCALER_FILE = 'scaler.pkl'
 DATA_FILE   = 'weather_exam.csv'
 WINDOW_SIZE = 7  # 模型訓練時使用的時序窗口長度
@@ -236,6 +237,7 @@ else:
     
     else:
         st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
 
