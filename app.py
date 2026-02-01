@@ -179,10 +179,10 @@ if model is not None:
                 help="選擇資料庫已存在的日期來比對AI預測與真實觀測值"
             )
             # 啟動驗證按鈕也移入側邊欄
-            btn_verify = st.sidebar.button("啟動驗證", type="primary")
-    
+            btn_verify = st.form_submit_button("啟動驗證", type="primary")
+            #btn_verify = st.sidebar.button("啟動驗證", type="primary")    
             st.subheader(f"📊 歷史模型驗證：{target_v}")
-    
+   
         if btn_verify:
             # 執行單日預測
             results = run_ai_prediction(pd.to_datetime(target_v), pd.to_datetime(target_v), model, scaler, df)
@@ -210,6 +210,7 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
 
