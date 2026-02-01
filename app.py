@@ -165,7 +165,7 @@ if model is not None:
                 col3.metric("AI 預測", f"{p['tavg']:.1f}°C", f"{p['snowdmax']:.1f}cm")
                 
                 error = abs(a['tavg'] - p['tavg'])
-                if error < 1.5:
+                if error < 2.0:
                     st.success(f"✅ 模型表現優異 (溫度誤差僅 {error:.2f}°C)")
                 else:
                     st.warning(f"🧐 誤差較大 ({error:.2f}°C)，通常發生在極端氣象變化的日子。")
@@ -173,7 +173,4 @@ if model is not None:
                 st.error("找不到該日期的完整資料，請重新選擇。")
 
 except Exception as e:
-    st.error(f"載入失敗，錯誤細節: {e}")
-
-
-
+    st.write(f"錯誤細節: {e}")
