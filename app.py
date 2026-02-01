@@ -111,8 +111,8 @@ def setup_environment():
 # 4. Web 介面佈局 (UI Layout)
 # =================================================================
 
-st.set_page_config(page_title="白馬村滑雪 AI 助理", layout="centered")
-st.title("❄️ 白馬村滑雪 AI 預測系統")
+st.set_page_config(page_title="白馬村滑雪天氣AI助理", layout="centered")
+st.title("❄️ 白馬村滑雪天氣AI助理")
 
 model, scaler, df = setup_environment()
 
@@ -148,7 +148,7 @@ if model is not None:
                     '日期': r['info']['date'].date(),
                     '最高溫': f"{r['info']['tmax']:.1f}°C",
                     '最低溫': f"{r['info']['tmin']:.1f}°C",
-                    '積雪(cm)': f"{r['info']['snowdmax']:.1f}", # 修正後的格式化顯示
+                    '積雪(cm)': f"{r['info']['snowdmax']:.1f}",
                     '指數': r['stars']
                 } for r in results]))
             else:
@@ -162,11 +162,11 @@ if model is not None:
         target_v = st.sidebar.date_input(
             "選擇驗證日期", 
             df['Date'].max().date(),
-            help="選擇資料庫已存在的日期來比對 AI 預測與真實觀測值"
+            help="選擇資料庫已存在的日期來比對AI預測與真實觀測值"
         )
         
         # 啟動驗證按鈕也移入側邊欄
-        btn_verify = st.sidebar.button("啟動 AI 驗證", type="primary")
+        btn_verify = st.sidebar.button("啟動驗證", type="primary")
 
         st.subheader(f"📊 歷史模型驗證：{target_v}")
 
@@ -184,16 +184,17 @@ if model is not None:
                 col1, col2, col3 = st.columns(3)
                 col1.metric("觀測項目", "平均氣溫", "積雪深度")
                 col2.metric("真實觀測", f"{a_info['tavg']:.1f}°C", f"{a_info['snowdmax']:.1f} cm")
-                col3.metric("AI 預測值", f"{p_info['tavg']:.1f}°C", f"{p_info['snowdmax']:.1f} cm")
+                col3.metric("AI預測值", f"{p_info['tavg']:.1f}°C", f"{p_info['snowdmax']:.1f} cm")
                 
                 # 誤差分析
                 diff = abs(a_info['tavg'] - p_info['tavg'])
                 if diff < 2.0:
-                    st.success(f"✅ 驗證完成！溫度誤差僅 {diff:.2f}°C，表現優異。")
+                    st.success(f"✅ 驗證完成！溫度誤差僅 {diff:.2f}°C，表現不差。")
                 else:
-                    st.warning(f"🧐 誤差值為 {diff:.2f}°C。這通常發生在氣候異常劇烈波動的日子。")
+                    st.warning(f"🧐 誤差值為 {diff:.2f}°C。這應該是氣候異常劇烈波動的日子。")
             else:
                 st.error("此日期不在資料庫中，或前置資料不足 (需至少有該日前 7 天的歷史紀錄)。")
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
