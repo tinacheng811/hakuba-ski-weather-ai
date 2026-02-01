@@ -141,9 +141,9 @@ if model is not None:
                 c2.metric("預估積雪", f"{best['info']['snowdmax']:.1f} cm")
                 st.info(f"💡 建議：{best['tips']}")
                 
-                # 顯示區間詳細預報表格
+                # 顯示區間詳細預測表格
                 st.divider()
-                st.subheader("📅 區間預報資訊")
+                st.subheader("📅 區間預測資訊")
                 st.table(pd.DataFrame([{
                     '日期': r['info']['date'].date(),
                     '最高溫': f"{r['info']['tmax']:.1f}°C",
@@ -197,5 +197,6 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
