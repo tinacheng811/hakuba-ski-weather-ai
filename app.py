@@ -74,8 +74,8 @@ def get_ski_recommendation(start_date_str, end_date_str, model, scaler, df, wind
 
 # --- 2. Streamlit 介面 ---
 
-st.set_page_config(page_title="白馬村滑雪預測", page_icon="❄️")
-st.title("❄️ 白馬村滑雪 AI 特助")
+st.set_page_config(page_title="白馬村滑雪天氣預測AI", page_icon="❄️")
+st.title("❄️ 白馬村滑雪天氣預測AI")
 
 @st.cache_resource
 def load_assets():
@@ -104,7 +104,7 @@ try:
     start_input = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
     end_input = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
 
-    if st.sidebar.button("執行 AI 分析"):
+    if st.sidebar.button("滑雪天氣建議"):
         best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
         
         if best:
@@ -129,5 +129,4 @@ try:
 
 except Exception as e:
     st.error(f"載入失敗：請確保 GitHub 中有 model.h5, scaler.pkl 和 weather_exam.csv 三個檔案。")
-
     st.write(f"錯誤細節: {e}")
