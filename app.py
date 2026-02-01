@@ -138,10 +138,12 @@ if model is not None:
                 
                 # 詳細表格
                 st.divider()
-                st.subheader("📅 詳細預報清單")
+                st.subheader("📅 區間詳細預報")
                 st.table(pd.DataFrame([{
                     '日期': r['info']['date'].date(),
                     '最高溫': f"{r['info']['tmax']:.1f}°C",
+                    '最低溫': f"{r['info']['tmin']:.1f}°C",
+                    '積雪(cm)': round(r['info']['snowdmax'], 1),
                     '指數': r['stars']
                 } for r in results]))
             else:
@@ -171,3 +173,4 @@ if model is not None:
                     st.warning(f"🧐 誤差較大 ({error:.2f}°C)，通常發生在極端氣象變化的日子。")
             else:
                 st.error("找不到該日期的完整資料，請重新選擇。")
+
