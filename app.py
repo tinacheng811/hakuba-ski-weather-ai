@@ -114,7 +114,7 @@ def setup_environment():
 st.set_page_config(page_title="白馬村滑雪天氣AI助理", layout="centered")
 st.title("❄️ 白馬村滑雪天氣AI助理")
 st.markdown(
-    '<p style="color:red; font-size: 0.9rem; font-weight: bold;">'
+    '<p style="color:red; font-size: 1.4rem; font-weight: bold;">'
     '⚠️⚠️⚠️本預測為學習課程專案報告使用，實際雪況請以白馬村官方即時影像為準⚠️⚠️⚠️'
     '</p>', 
     unsafe_allow_html=True
@@ -203,6 +203,7 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
 
