@@ -7,31 +7,6 @@ from tensorflow.keras.models import load_model
 
 import streamlit.components.v1 as components # 新增這個 import
 
-# ==========================================
-# 0. 全域導覽設定
-# ==========================================
-st.sidebar.title("📌 專案導覽")
-app_view = st.sidebar.selectbox("切換顯示內容", ["🏂 滑雪預測 App", "📝 訓練過程全紀錄 (Notebook)"])
-
-# --- 情況 A：顯示訓練過程 ---
-if app_view == "📝 訓練過程全紀錄 (Notebook)":
-    st.title("📝 模型訓練與開發全紀錄")
-    st.markdown("本頁面展示了在 Colab 上執行訓練程式碼的每一個步驟與結果。")
-    
-    # 讀取並嵌入 HTML 檔案
-    try:
-        with open("abc.html", 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        
-        # 使用 components 嵌入，並設定高度
-        components.html(html_content, height=1200, scrolling=True)
-        
-    except FileNotFoundError:
-        st.error("找不到 abc.html 檔案，請確認已上傳至 GitHub。")
-
-# --- 情況 B：顯示原本的 App (將你原本所有的 UI 邏輯包在 else 裡) ---
-else:
-
 # =================================================================
 # 1. 系統常數定義 (Constants)
 # =================================================================
@@ -41,6 +16,7 @@ DATA_FILE   = 'weather_exam.csv'
 WINDOW_SIZE = 7  # 模型訓練時使用的時序窗口長度
 # 嚴格對齊訓練時的 9 個特徵欄位順序
 FEATURES    = ['tavg', 'tmax', 'tmin', 'prcp', 'snowf', 'snowdmax', 'sunhour', 'month_sin', 'month_cos']
+
 
 # =================================================================
 # 2. 邏輯封裝 (Logic Layer)
@@ -139,6 +115,29 @@ def setup_environment():
 # =================================================================
 
 st.set_page_config(page_title="白馬村滑雪天氣AI助理", layout="centered")
+# =================================================================
+# 在側邊欄最上方增加「切換器」
+# ==================================================================
+st.sidebar.title("📌 專案功能導覽")
+view_mode = st.sidebar.selectbox("切換視圖", ["🏂 滑雪預測 App", "📝 訓練過程全紀錄"])
+
+model, scaler, df = setup_environment()
+
+if view_mode == "📝 訓練過程全紀錄":
+    # --- 訓練紀錄模式 ---
+    st.title("📝 模型訓練與開發全紀錄")
+    st.info("本頁面展示了在 Colab 上執行訓練程式碼的每一個步驟與結果。")
+    
+    try:
+        with open("abc.html", 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        # 嵌入靜態網頁，scrolling=True 可讓教授滾動查看代碼塊
+        components.html(html_content, height=1000, scrolling=True)
+    except FileNotFoundError:
+        st.error("找不到 abc.html 檔案。請確認已將轉換後的 HTML 上傳至 GitHub 並更名。")
+
+else:
+# ==================================================================
 st.title("❄️ 白馬村滑雪天氣AI助理")
 st.markdown(
     '<p style="color:red; font-size: 1.4rem; font-weight: bold;">'
@@ -237,6 +236,7 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
 
