@@ -117,7 +117,18 @@ try:
                 c1.metric("滑雪指數", best['stars'])
                 c2.metric("預計積雪", f"{best['info']['snowdmax']:.1f} cm")
                 st.info(f"💡 教練建議：{best['tips']}")
-                # 表格顯示 (略...)
+                # 表格顯示---------------------------------------------------------------
+                st.divider()
+                st.subheader("📅 區間詳細預報")
+                display_df = pd.DataFrame([{
+                    '日期': r['date'].date(),
+                    '最高溫': f"{r['info']['tmax']:.1f}°C",
+                    '最低溫': f"{r['info']['tmin']:.1f}°C",
+                    '積雪(cm)': round(r['info']['snowdmax'], 1),
+                    '指數': r['stars']
+                } for r in results])
+                st.table(display_df)
+                #-------------------------------------------------------------
             else:
                 st.warning("請選擇資料集最後一天之後的日期。")
 
@@ -144,9 +155,13 @@ try:
                     col3.metric("AI 預測", f"{pred['tavg']:.1f}°C", f"{pred['snowdmax']:.1f} cm")
                     diff = abs(actual['tavg'] - pred['tavg'])
                     st.info(f"💡 溫度誤差：{diff:.2f}°C")
-                    st.success("✅ 驗證完成！") if diff < 2.0 else st.warning("🧐 誤差較大。")
+                    if diff < 2.0:
+                        st.success("✅ 驗證完成！系統預測相當準確。")
+                    else:
+                        st.warning("🧐 誤差較大。這通常是因為當天有突發氣候變化（如強烈寒流或暖流）。")
         else:
             st.error("此日期不在資料庫中。")
 
 except Exception as e:
     st.error(f"載入失敗，錯誤細節: {e}")
+
