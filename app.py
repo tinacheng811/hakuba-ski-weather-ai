@@ -109,32 +109,42 @@ try:
         st.sidebar.header("行程設定")
         start_input = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
         end_input = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
-    
-        if st.sidebar.button("執行AI分析"):
-            best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
-            
-            if best:
-                st.success(f"🏆 最佳推薦日：{best['date'].date()}")
-                col1, col2 = st.columns(2)
-                col1.metric("滑雪指數", best['stars'])
-                col2.metric("預計積雪", f"{best['info']['snowdmax']:.1f} cm")
-                st.info(f"💡 教練建議：{best['tips']}")
-                
-                st.divider()
-                st.subheader("📅 區間詳細預報")
-                display_df = pd.DataFrame([{
-                    '日期': r['date'].date(),
-                    '最高溫': f"{r['info']['tmax']:.1f}°C",
-                    '最低溫': f"{r['info']['tmin']:.1f}°C",
-                    '積雪(cm)': round(r['info']['snowdmax'], 1),
-                    '指數': r['stars']
-                } for r in results])
-                st.table(display_df)
-            else:
-                st.warning("請選擇資料集日期之後的未來區間（例如 2026 年之後）。")
-
     else:
-    # --- 歷史預測驗證模式 ---
+        st.sidebar.warning("⚠️ 驗證模式：系統將從歷史資料中隨機挑選一天，比對『模型預測』與『真實觀測值』。")
+        # 提供一個按鈕讓使用者隨機挑選歷史日期
+        if st.sidebar.button("隨機挑選一個歷史日期"):
+            random_date = df['Date'].sample(1).iloc[0]
+            st.session_state['check_date'] = random_date
+        
+        # 預設一個歷史日期（例如資料集的最後一天）
+        check_date = st.session_state.get('check_date', df['Date'].max())
+        verify_date = st.sidebar.date_input("選擇驗證日期", check_date)
+
+        
+    if st.sidebar.button("執行AI分析"):
+        best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
+        
+        if best:
+            st.success(f"🏆 最佳推薦日：{best['date'].date()}")
+            col1, col2 = st.columns(2)
+            col1.metric("滑雪指數", best['stars'])
+            col2.metric("預計積雪", f"{best['info']['snowdmax']:.1f} cm")
+            st.info(f"💡 教練建議：{best['tips']}")
+            
+            st.divider()
+            st.subheader("📅 區間詳細預報")
+            display_df = pd.DataFrame([{
+                '日期': r['date'].date(),
+                '最高溫': f"{r['info']['tmax']:.1f}°C",
+                '最低溫': f"{r['info']['tmin']:.1f}°C",
+                '積雪(cm)': round(r['info']['snowdmax'], 1),
+                '指數': r['stars']
+            } for r in results])
+            st.table(display_df)
+        else:
+            st.warning("請選擇資料集日期之後的未來區間（例如 2026 年之後）。")
+    else:
+        # --- 歷史預測驗證模式 ---
         st.subheader(f"🔍 歷史資料驗證：{verify_date}")
         
         # 抓取該日期的真實資料
@@ -184,4 +194,5 @@ except Exception as e:
 
 
     st.write(f"錯誤細節: {e}")
+
 
