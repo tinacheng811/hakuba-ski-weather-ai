@@ -5,6 +5,33 @@ import pickle
 from datetime import datetime
 from tensorflow.keras.models import load_model
 
+import streamlit.components.v1 as components # 新增這個 import
+
+# ==========================================
+# 0. 全域導覽設定
+# ==========================================
+st.sidebar.title("📌 專案導覽")
+app_view = st.sidebar.selectbox("切換顯示內容", ["🏂 滑雪預測 App", "📝 訓練過程全紀錄 (Notebook)"])
+
+# --- 情況 A：顯示訓練過程 ---
+if app_view == "📝 訓練過程全紀錄 (Notebook)":
+    st.title("📝 模型訓練與開發全紀錄")
+    st.markdown("本頁面展示了在 Colab 上執行訓練程式碼的每一個步驟與結果。")
+    
+    # 讀取並嵌入 HTML 檔案
+    try:
+        with open("abc.html", 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # 使用 components 嵌入，並設定高度
+        components.html(html_content, height=1200, scrolling=True)
+        
+    except FileNotFoundError:
+        st.error("找不到 abc.html 檔案，請確認已上傳至 GitHub。")
+
+# --- 情況 B：顯示原本的 App (將你原本所有的 UI 邏輯包在 else 裡) ---
+else:
+
 # =================================================================
 # 1. 系統常數定義 (Constants)
 # =================================================================
@@ -210,6 +237,7 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
 
 
