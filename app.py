@@ -74,8 +74,8 @@ def get_ski_recommendation(start_date_str, end_date_str, model, scaler, df, wind
 
 # --- 2. Streamlit 介面 ---
 
-st.set_page_config(page_title="白馬村滑雪預測", page_icon="❄️")
-st.title("❄️ 白馬村滑雪 AI 特助")
+st.set_page_config(page_title="白馬村滑雪天氣預測AI", page_icon="❄️")
+st.title("❄️ 白馬村滑雪天氣預測AI")
 
 @st.cache_resource
 def load_assets():
@@ -98,36 +98,73 @@ def load_assets():
     return model, scaler, df
 
 try:
+    # 1. 載入模型與資料 (只執行一次)
     model, scaler, df = load_assets()
+
+    # 2. 側邊欄：功能選單 (放在 try 裡面)
+    st.sidebar.header("功能設定")
+    mode = st.sidebar.radio("請選擇功能模式：", ["未來行程規劃", "歷史預測驗證"])
+
+    if mode == "未來行程規劃":
+        st.sidebar.header("行程設定")
+        start_input = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
+        end_input = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
     
-    st.sidebar.header("行程設定")
-    start_input = st.sidebar.date_input("開始日期", datetime(2026, 2, 10))
-    end_input = st.sidebar.date_input("結束日期", datetime(2026, 2, 15))
-
-    if st.sidebar.button("執行 AI 分析"):
-        best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
-        
-        if best:
-            st.success(f"🏆 最佳推薦日：{best['date'].date()}")
-            col1, col2 = st.columns(2)
-            col1.metric("滑雪指數", best['stars'])
-            col2.metric("預計積雪", f"{best['info']['snowdmax']:.1f} cm")
-            st.info(f"💡 教練建議：{best['tips']}")
+        if st.sidebar.button("執行AI分析"):
+            best, results = get_ski_recommendation(str(start_input), str(end_input), model, scaler, df)
             
-            st.divider()
-            st.subheader("📅 區間詳細預報")
-            display_df = pd.DataFrame([{
-                '日期': r['date'].date(),
-                '最高溫': f"{r['info']['tmax']:.1f}°C",
-                '最低溫': f"{r['info']['tmin']:.1f}°C",
-                '積雪(cm)': round(r['info']['snowdmax'], 1),
-                '指數': r['stars']
-            } for r in results])
-            st.table(display_df)
-        else:
-            st.warning("請選擇資料集日期之後的未來區間（例如 2026 年之後）。")
+            if best:
+                st.success(f"🏆 最佳推薦日：{best['date'].date()}")
+                col1, col2 = st.columns(2)
+                col1.metric("滑雪指數", best['stars'])
+                col2.metric("預計積雪", f"{best['info']['snowdmax']:.1f} cm")
+                st.info(f"💡 教練建議：{best['tips']}")
+                
+                st.divider()
+                st.subheader("📅 區間詳細預報")
+                display_df = pd.DataFrame([{
+                    '日期': r['date'].date(),
+                    '最高溫': f"{r['info']['tmax']:.1f}°C",
+                    '最低溫': f"{r['info']['tmin']:.1f}°C",
+                    '積雪(cm)': round(r['info']['snowdmax'], 1),
+                    '指數': r['stars']
+                } for r in results])
+                st.table(display_df)
+            else:
+                st.warning("請選擇資料集日期之後的未來區間（例如 2026 年之後）。")
 
+    else:
+        st.sidebar.subheader("🔍 準確度驗證")
+        # 驗證模式的日期選擇
+        verify_date = st.sidebar.date_input("選擇歷史日期", df['Date'].max())
+        
+        if st.sidebar.button("開始核對"):
+            # 呼叫同一套邏輯進行單日預測
+            _, result = get_ski_recommendation(str(verify_date), str(verify_date), model, scaler, df)
+            
+            if result:
+                pred = result[0]['info']
+                real_data = df[df['Date'] == pd.to_datetime(verify_date)]
+                
+                if not real_data.empty:
+                    actual = real_data.iloc[0]
+                    st.subheader(f"📊 預測 vs 真實 ({verify_date})")
+                    
+                    # 用 columns 顯示美觀的對照表
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("項目", "平均溫", "降雪量")
+                    c2.metric("真實觀測", f"{actual['tavg']:.1f}°C", f"{actual['snowf']:.1f}cm")
+                    c3.metric("AI 預測", f"{pred['tavg']:.1f}°C", f"{pred['snowf']:.1f}cm")
+                    
+                    # 顯示誤差分析
+                    diff = abs(actual['tavg'] - pred['tavg'])
+                    st.info(f"💡 溫度誤差：{diff:.2f}°C")
+                else:
+                    st.error("找不到該日期的真實資料。")
+
+# --- 這裡就是關鍵：必須要有 except 來結尾 ---
 except Exception as e:
     st.error(f"載入失敗：請確保 GitHub 中有 model.h5, scaler.pkl 和 weather_exam.csv 三個檔案。")
+
 
     st.write(f"錯誤細節: {e}")
