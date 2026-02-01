@@ -143,7 +143,7 @@ if model is not None:
                 
                 # 顯示區間詳細預報表格
                 st.divider()
-                st.subheader("📅 詳細預報清單")
+                st.subheader("📅 區間預報資訊")
                 st.table(pd.DataFrame([{
                     '日期': r['info']['date'].date(),
                     '最高溫': f"{r['info']['tmax']:.1f}°C",
@@ -197,4 +197,5 @@ if model is not None:
 
 else:
     st.error("❌ 系統啟動失敗，請檢查模型檔案是否存在。")
+
 
